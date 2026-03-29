@@ -7,10 +7,14 @@ import (
 )
 
 func (app *App) onReady(s *discordgo.Session, _ *discordgo.Ready) {
-	logMessage := "Bot was turned on"
-	log.Println(logMessage)
+	if app.Initialized {
+		log.Println("bot reconnected")
+		return
+	}
 
+	log.Println("bot is ready")
 	app.Bot.ChannelMessageSend("904628203430219787", "I AM HERE")
+	app.Initialized = true
 
 }
 

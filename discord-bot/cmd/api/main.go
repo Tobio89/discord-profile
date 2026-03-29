@@ -11,7 +11,8 @@ import (
 )
 
 type App struct {
-	Bot *discordgo.Session
+	Bot         *discordgo.Session
+	Initialized bool
 }
 
 func init() {
@@ -28,17 +29,19 @@ func main() {
 
 	bot := createSession(token)
 
-	app := &App{Bot: bot}
+	app := &App{Bot: bot, Initialized: false}
 
 	app.addEventHandlers()
 
 	log.Println("starting bot session")
-	startSession(bot)
+	app.StartSession()
 
 	// Create channel, hold it open
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
+
+	app.Initialized = false
 
 	// Cleanly close down the Discord session.
 	log.Println("discord bot shutting down")
@@ -53,8 +56,8 @@ func createSession(token string) *discordgo.Session {
 
 	return dg
 }
-func startSession(dg *discordgo.Session) {
-	err := dg.Open()
+func (app *App) StartSession() {
+	err := app.Bot.Open()
 	if err != nil {
 		log.Panic(err)
 	}
