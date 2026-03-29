@@ -7,13 +7,32 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/joho/godotenv"
 )
 
+type App struct {
+	Bot *discordgo.Session
+}
+
+func init() {
+	err := godotenv.Load("dev.env")
+	if err != nil {
+		log.Panic("could not load dev.env file")
+	}
+}
+
 func main() {
-	log.Println("The app")
+	log.Println("# discord bot")
 
-	bot := createSession("")
+	token := os.Getenv("BOT_TOKEN")
 
+	bot := createSession(token)
+
+	app := &App{Bot: bot}
+
+	app.addEventHandlers()
+
+	log.Println("starting bot session")
 	startSession(bot)
 
 	// Create channel, hold it open
@@ -23,7 +42,7 @@ func main() {
 
 	// Cleanly close down the Discord session.
 	log.Println("discord bot shutting down")
-	bot.Close()
+	app.Bot.Close()
 }
 
 func createSession(token string) *discordgo.Session {
