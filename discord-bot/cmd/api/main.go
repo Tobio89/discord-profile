@@ -1,6 +1,7 @@
 package main
 
 import (
+	"discord-profile/discord-bot/commands"
 	"log"
 	"os"
 	"os/signal"
@@ -11,9 +12,11 @@ import (
 )
 
 type App struct {
-	Bot         *discordgo.Session
+	Commands    commands.Commands
 	Initialized bool
 }
+
+var bot *discordgo.Session
 
 func init() {
 	err := godotenv.Load("dev.env")
@@ -27,11 +30,12 @@ func main() {
 
 	token := os.Getenv("BOT_TOKEN")
 
-	bot := createSession(token)
+	bot = createSession(token)
 
-	app := &App{Bot: bot, Initialized: false}
+	app := App{Initialized: false, Commands: commands.New(bot)}
 
 	app.addEventHandlers()
+	app.Commands.InitializeCommands()
 
 	log.Println("starting bot session")
 	app.StartSession()
@@ -45,7 +49,7 @@ func main() {
 
 	// Cleanly close down the Discord session.
 	log.Println("discord bot shutting down")
-	app.Bot.Close()
+	bot.Close()
 }
 
 func createSession(token string) *discordgo.Session {
@@ -57,7 +61,7 @@ func createSession(token string) *discordgo.Session {
 	return dg
 }
 func (app *App) StartSession() {
-	err := app.Bot.Open()
+	err := bot.Open()
 	if err != nil {
 		log.Panic(err)
 	}
