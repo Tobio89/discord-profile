@@ -2,6 +2,7 @@ package main
 
 import (
 	"discord-profile/discord-bot/commands"
+	"discord-profile/discord-bot/config"
 	"log"
 	"os"
 	"os/signal"
@@ -14,6 +15,7 @@ import (
 type App struct {
 	Commands    commands.Commands
 	Initialized bool
+	Config      config.Config
 }
 
 var bot *discordgo.Session
@@ -28,11 +30,21 @@ func init() {
 func main() {
 	log.Println("# discord bot")
 
-	token := os.Getenv("BOT_TOKEN")
+	cfg := config.Config{
+		Token:   os.Getenv("BOT_TOKEN"),
+		BotID:   os.Getenv("BOT_ID"),
+		GuildID: os.Getenv("GUILD_ID"),
+	}
 
-	bot = createSession(token)
+	bot = createSession(cfg.Token)
 
-	app := App{Initialized: false, Commands: commands.New(bot)}
+	app := App{
+		Config:      cfg,
+		Initialized: false,
+		Commands:    commands.New(bot, &cfg),
+	}
+
+	bot.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsAllWithoutPrivileged | discordgo.IntentMessageContent
 
 	app.addEventHandlers()
 	app.Commands.InitializeCommands()

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"discord-profile/discord-bot/config"
 	"log"
 	"time"
 
@@ -9,14 +10,15 @@ import (
 
 var bot *discordgo.Session
 
-const guildID = "900729260531134474"
-
 type Commands struct {
+	cfg *config.Config
 }
 
-func New(s *discordgo.Session) Commands {
+func New(s *discordgo.Session, cfg *config.Config) Commands {
 	bot = s
-	return Commands{}
+	return Commands{
+		cfg: cfg,
+	}
 
 }
 
@@ -26,13 +28,13 @@ func (c *Commands) InitializeCommands() {
 }
 
 func (c *Commands) registerCommands() {
-	_, err := bot.ApplicationCommandCreate("1487633984606175292", guildID, LoginCommand)
+	_, err := bot.ApplicationCommandCreate(c.cfg.BotID, c.cfg.GuildID, LoginCommand)
 	if err != nil {
-		log.Println(err)
+		log.Println("whilst adding login command: ", err)
 	}
-	_, err = bot.ApplicationCommandCreate("1487633984606175292", guildID, LoginDeferredCommand)
+	_, err = bot.ApplicationCommandCreate(c.cfg.BotID, c.cfg.GuildID, LoginDeferredCommand)
 	if err != nil {
-		log.Println(err)
+		log.Println("whilst adding login-slowly command: ", err)
 	}
 }
 
