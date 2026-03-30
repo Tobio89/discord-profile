@@ -21,7 +21,7 @@ func (r *RPCServer) LogInfo(payload RPCPayload, resp *string) error {
 }
 
 func MakeRPCCall(username string) {
-	client, err := rpc.Dial("tcp", "localhost:5001")
+	client, err := rpc.Dial("tcp", "profile-broker:5001")
 	if err != nil {
 		log.Println("while creating RPC client: ", err)
 		return

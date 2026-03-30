@@ -1,0 +1,24 @@
+services:
+
+
+  discord-bot:
+    build:
+      context: ./discord-bot
+      dockerfile: ./bot.dockerfile
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    env_file:
+      - ./discord-bot/dev.env
+
+  profile-broker:
+    build:
+      context: ./profile-broker
+      dockerfile: ./broker.dockerfile
+    restart: always
+    ports:
+      - "8080:80"
+    deploy:
+      mode: replicated
+      replicas: 1

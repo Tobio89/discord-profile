@@ -21,9 +21,12 @@ type App struct {
 var bot *discordgo.Session
 
 func init() {
-	err := godotenv.Load("dev.env")
-	if err != nil {
-		log.Panic("could not load dev.env file")
+	token := os.Getenv("BOT_TOKEN")
+	if token == "" {
+		err := godotenv.Load("dev.env")
+		if err != nil {
+			log.Panic("could not load envs")
+		}
 	}
 }
 
