@@ -1,6 +1,9 @@
 package main
 
-import "log"
+import (
+	"log"
+	"net/rpc"
+)
 
 type RPCServer struct{}
 
@@ -12,7 +15,34 @@ func (r *RPCServer) LogInfo(payload RPCPayload, resp *string) error {
 
 	log.Println("broker: received request from: ", payload.User)
 
-	*resp = "received login request from: " + payload.User
+	response := MakeRPCCall(payload.User)
+
+	*resp = response
 
 	return nil
+}
+
+func MakeRPCCall(username string) (result string) {
+	client, err := rpc.Dial("tcp", "auth-service:5001")
+	if err != nil {
+		log.Println("while creating RPC client: ", err)
+		return
+	}
+
+	rpcPayload := RPCPayload{
+		User: username,
+	}
+
+	// the response from the RPC call
+
+	err = client.Call("RPCServer.GetLoginURL", rpcPayload, &result)
+	if err != nil {
+		log.Println("while calling RPC: ", err)
+		return
+	}
+
+	log.Println("response from RPC: ", result)
+
+	return result
+
 }
