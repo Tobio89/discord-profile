@@ -1,2 +1,4 @@
 **/dist/**
 .ai
+**.env
+db-data
