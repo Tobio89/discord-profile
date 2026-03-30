@@ -5,25 +5,59 @@ import (
 	"net/rpc"
 )
 
-type RPCServer struct{}
-
 type RPCPayload struct {
 	User string
 }
 
-func (r *RPCServer) LogInfo(payload RPCPayload, resp *string) error {
+type RPCLoginPayload struct {
+	Username string
+	ID       string
+	Token    string
+}
+type LoginRequest struct {
+	Username string
+	ID       string
+	Token    string
+}
 
-	log.Println("broker: received request from: ", payload.User)
+func DialRPCServer() (*rpc.Client, error) {
+	client, err := rpc.Dial("tcp", "profile-broker:5001")
+	if err != nil {
+		return nil, err
+	}
 
-	*resp = "received login request from: " + payload.User
+	return client, nil
 
-	return nil
+}
+
+func RPCRequestLogin(loginReq LoginRequest) (result string, err error) {
+	client, err := DialRPCServer()
+	if err != nil {
+		log.Println("while dialing RPC server: ", err)
+		return "", err
+	}
+
+	payload := RPCLoginPayload{
+		Username: loginReq.Username,
+		ID:       loginReq.ID,
+		Token:    loginReq.Token,
+	}
+
+	err = client.Call("RPCServer.RequestLogin", payload, &result)
+	if err != nil {
+		log.Println("while calling RPC: ", err)
+		return "", err
+	}
+
+	log.Println("response from RPC: ", result)
+
+	return result, nil
 }
 
 func MakeRPCCall(username string) (result string) {
-	client, err := rpc.Dial("tcp", "profile-broker:5001")
+	client, err := DialRPCServer()
 	if err != nil {
-		log.Println("while creating RPC client: ", err)
+		log.Println("while dialing RPC server: ", err)
 		return
 	}
 

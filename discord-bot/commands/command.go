@@ -54,7 +54,7 @@ func (c *Commands) regularCommandGroup(s *discordgo.Session, i *discordgo.Intera
 	switch data.Name {
 	case "login":
 		log.Printf("user %s is trying to login via the bot", interactionMember.User.Username)
-		c.HandleLoginRequest(i, interactionMember.User.Username)
+		c.HandleLoginRequest(i)
 		// c.SendResponse(i, "Here's your login link: http://localhost:5173/")
 
 	case "login-slowly":
