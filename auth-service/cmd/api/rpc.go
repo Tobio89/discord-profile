@@ -12,7 +12,7 @@ func (r *RPCServer) GetLoginURL(payload RPCPayload, resp *string) error {
 
 	log.Println("auth: received request from: ", payload.User)
 
-	*resp = "http://google.com/"
+	*resp = "http://localhost:5173/" + payload.User
 
 	return nil
 }
