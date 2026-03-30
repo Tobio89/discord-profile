@@ -41,6 +41,10 @@ up_build: build_bot build_broker build_auth
 	docker compose up -d --build
 	@echo "Done!"
 
+start:
+	@echo "Starting front end app"
+	cd ./front-end && yarn && yarn dev
+
 down:
 	@echo "Stopping docker compose..."
 	docker-compose down
