@@ -31,6 +31,8 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+    env_file:
+      - ./auth-service/dev.env
 
   postgres:
     image: 'postgres:14.2'
