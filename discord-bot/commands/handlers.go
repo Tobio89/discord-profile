@@ -9,6 +9,6 @@ import (
 
 func (c *Commands) HandleLoginRequest(i *discordgo.InteractionCreate, username string) {
 	log.Println("sending RPC request")
-	rpc.MakeRPCCall(username)
-	c.SendResponse(i, "Here's your login link: http://localhost:5173/")
+	result := rpc.MakeRPCCall(username)
+	c.SendResponse(i, "Here's your login link: "+result)
 }
