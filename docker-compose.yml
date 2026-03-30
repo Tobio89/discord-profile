@@ -22,3 +22,12 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: ./auth.dockerfile
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
