@@ -14,6 +14,12 @@ type RPCLoginPayload struct {
 	Token    string
 }
 
+type RPCLoginResponse struct {
+	Success bool
+	URL     string
+	Message string
+}
+
 type RPCSignupPayload struct {
 	Username string
 	ID       string

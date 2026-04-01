@@ -40,6 +40,11 @@ func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *string) err
 	}
 
 	token, err := magiclink.IssueToken(app.TokenPepper)
+	if err != nil {
+		log.Println("Error issuing token: ", err)
+		*resp = ""
+		return err
+	}
 
 	*resp = "http://localhost:5173/login" + "?token=" + token.RawToken
 
