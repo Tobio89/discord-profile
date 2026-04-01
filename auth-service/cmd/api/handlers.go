@@ -21,6 +21,34 @@ func handleLoginRequest(payload RPCLoginPayload, resp *string) error {
 
 }
 
+func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *string) error {
+	log.Println("auth: received login request for user: ", payload.Username)
+
+	// Check if user already exists in the database
+	dbUser, err := app.Repo.GetUserByDiscordID(payload.ID)
+
+	if err != nil {
+		log.Println("Error checking for existing user: ", err)
+		return err
+	}
+
+	// If user already exists, return response indicating that
+	if dbUser == nil {
+		*resp = ""
+		return nil
+	}
+
+	secureHash := make([]byte, 32)
+	rand.Read(secureHash)
+
+	sEnc := b64.StdEncoding.EncodeToString([]byte(secureHash))
+
+	*resp = "http://localhost:5173/login" + "?token=" + string(sEnc)
+
+	return nil
+
+}
+
 func (app *Config) HandleSignupRequest(payload RPCSignupPayload, resp *RPCSignupResponse) error {
 	log.Println("auth: received signup request for user: ", payload.Username)
 

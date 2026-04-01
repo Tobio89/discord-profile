@@ -35,7 +35,7 @@ func (r *RPCServer) GetLoginURL(payload RPCPayload, resp *string) error {
 }
 
 func (r *RPCServer) RequestLogin(payload RPCLoginPayload, resp *string) error {
-	return handleLoginRequest(payload, resp)
+	return app.HandleLoginRequest(payload, resp)
 }
 
 func (r *RPCServer) RequestSignup(payload RPCSignupPayload, resp *RPCSignupResponse) error {
