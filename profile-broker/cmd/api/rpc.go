@@ -17,6 +17,12 @@ type RPCLoginPayload struct {
 	Token    string
 }
 
+type RPCLoginResponse struct {
+	Success bool
+	URL     string
+	Message string
+}
+
 type RPCSignupPayload struct {
 	Username string
 	ID       string
@@ -39,7 +45,7 @@ func (r *RPCServer) LogInfo(payload RPCPayload, resp *string) error {
 	return nil
 }
 
-func (r *RPCServer) RequestLogin(payload RPCLoginPayload, resp *string) error {
+func (r *RPCServer) RequestLogin(payload RPCLoginPayload, resp *RPCLoginResponse) error {
 	log.Println("broker: received login request for user: ", payload.Username)
 
 	response, err := RPCRequestLogin(payload)
@@ -78,11 +84,11 @@ func DialRPCServer() (*rpc.Client, error) {
 
 }
 
-func RPCRequestLogin(loginReq RPCLoginPayload) (result string, err error) {
+func RPCRequestLogin(loginReq RPCLoginPayload) (result RPCLoginResponse, err error) {
 	client, err := DialRPCServer()
 	if err != nil {
 		log.Println("while dialing RPC server: ", err)
-		return "", err
+		return RPCLoginResponse{}, err
 	}
 
 	payload := RPCLoginPayload{
@@ -94,7 +100,7 @@ func RPCRequestLogin(loginReq RPCLoginPayload) (result string, err error) {
 	err = client.Call("RPCServer.RequestLogin", payload, &result)
 	if err != nil {
 		log.Println("while calling RPC: ", err)
-		return "", err
+		return RPCLoginResponse{}, err
 	}
 
 	log.Println("response from RPC: ", result)
