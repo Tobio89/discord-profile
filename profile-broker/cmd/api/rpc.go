@@ -3,36 +3,17 @@ package main
 import (
 	"log"
 	"net/rpc"
+
+	rpccontracts "discord-profile/lib/rpc-contracts"
 )
 
 type RPCServer struct{}
 
-type RPCPayload struct {
-	User string
-}
-
-type RPCLoginPayload struct {
-	Username string
-	ID       string
-	Token    string
-}
-
-type RPCLoginResponse struct {
-	Success bool
-	URL     string
-	Message string
-}
-
-type RPCSignupPayload struct {
-	Username string
-	ID       string
-	Token    string
-}
-
-type RPCSignupResponse struct {
-	AlreadyExists bool
-	Message       string
-}
+type RPCPayload = rpccontracts.Payload
+type RPCLoginPayload = rpccontracts.LoginPayload
+type RPCLoginResponse = rpccontracts.LoginResponse
+type RPCSignupPayload = rpccontracts.SignupPayload
+type RPCSignupResponse = rpccontracts.SignupResponse
 
 func (r *RPCServer) LogInfo(payload RPCPayload, resp *string) error {
 
@@ -46,11 +27,11 @@ func (r *RPCServer) LogInfo(payload RPCPayload, resp *string) error {
 }
 
 func (r *RPCServer) RequestLogin(payload RPCLoginPayload, resp *RPCLoginResponse) error {
-	log.Println("broker: received login request for user: ", payload.Username)
+	log.Println("broker: received login request for user:", payload.Username)
 
 	response, err := RPCRequestLogin(payload)
 	if err != nil {
-		log.Println("error while requesting login: ", err)
+		log.Println("error while requesting login:", err)
 	}
 
 	*resp = response
@@ -100,7 +81,11 @@ func RPCRequestLogin(loginReq RPCLoginPayload) (result RPCLoginResponse, err err
 	err = client.Call("RPCServer.RequestLogin", payload, &result)
 	if err != nil {
 		log.Println("while calling RPC: ", err)
-		return RPCLoginResponse{}, err
+		return RPCLoginResponse{
+			Success: false,
+			Message: "unable to login",
+			URL:     "",
+		}, err
 	}
 
 	log.Println("response from RPC: ", result)

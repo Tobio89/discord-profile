@@ -7,27 +7,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-//   "Looks like you're new to the app! Use `/create-profile` to get started."
-
-// func (c *Commands) HandleLoginRequest(i *discordgo.InteractionCreate) {
-// 	log.Println("sending RPC request")
-// 	// result := rpc.MakeRPCCall(username)
-// 	result, err := rpc.RPCRequestLogin(rpc.LoginRequest{
-// 		Username: i.Member.User.Username,
-// 		ID:       i.Member.User.ID,
-// 		Token:    i.Member.User.Token,
-// 	})
-
-// 	if err != nil {
-// 		log.Println("error while making RPC call: ", err)
-// 		c.SendResponse(i, "Sorry, something went wrong while processing your request. Please try again later.")
-// 		return
-// 	}
-
-// 	log.Println("RPC response: ", result)
-// 	c.SendResponse(i, "Here's your login link: "+result)
-// }
-
 func (c *Commands) HandleLoginRequest(i *discordgo.InteractionCreate) {
 	// Set response to be ephemeral and deferred
 	flags := discordgo.MessageFlags(0)
@@ -52,7 +31,7 @@ func (c *Commands) HandleLoginRequest(i *discordgo.InteractionCreate) {
 	var content string
 
 	// RPC Error handling
-	if err != nil {
+	if err != nil || result.Error == true {
 		log.Println("error while making RPC call: ", err)
 		content = "Sorry, something went wrong while processing your request. Please try again later."
 		if _, err := bot.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{

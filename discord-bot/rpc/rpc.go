@@ -3,23 +3,13 @@ package rpc
 import (
 	"log"
 	"net/rpc"
+
+	rpccontracts "discord-profile/lib/rpc-contracts"
 )
 
-type RPCPayload struct {
-	User string
-}
-
-type RPCLoginPayload struct {
-	Username string
-	ID       string
-	Token    string
-}
-
-type RPCLoginResponse struct {
-	Success bool
-	URL     string
-	Message string
-}
+type RPCPayload = rpccontracts.Payload
+type RPCLoginPayload = rpccontracts.LoginPayload
+type RPCLoginResponse = rpccontracts.LoginResponse
 
 type LoginRequest struct {
 	Username string
@@ -27,16 +17,8 @@ type LoginRequest struct {
 	Token    string
 }
 
-type RPCSignupPayload struct {
-	Username string
-	ID       string
-	Token    string
-}
-
-type RPCSignupResponse struct {
-	AlreadyExists bool
-	Message       string
-}
+type RPCSignupPayload = rpccontracts.SignupPayload
+type RPCSignupResponse = rpccontracts.SignupResponse
 
 func DialRPCServer() (*rpc.Client, error) {
 	client, err := rpc.Dial("tcp", "profile-broker:5001")

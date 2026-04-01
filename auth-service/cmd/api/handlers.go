@@ -22,7 +22,7 @@ func handleLoginRequest(payload RPCLoginPayload, resp *string) error {
 
 }
 
-func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *string) error {
+func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *RPCLoginResponse) error {
 	log.Println("auth: received login request for user: ", payload.Username)
 
 	// Check if user already exists in the database
@@ -30,23 +30,43 @@ func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *string) err
 
 	if err != nil {
 		log.Println("Error checking for existing user: ", err)
+		*resp = RPCLoginResponse{
+			Error:   true,
+			Success: false,
+			Message: "error checking for existing user",
+			URL:     "",
+		}
 		return err
 	}
 
-	// If user already exists, return response indicating that
 	if dbUser == nil {
-		*resp = ""
+		*resp = RPCLoginResponse{
+			Error:   false,
+			Success: false,
+			Message: "user does not exist",
+			URL:     "",
+		}
 		return nil
 	}
 
 	token, err := magiclink.IssueToken(app.TokenPepper)
 	if err != nil {
 		log.Println("Error issuing token: ", err)
-		*resp = ""
+		*resp = RPCLoginResponse{
+			Error:   true,
+			Success: false,
+			Message: "error issuing token",
+			URL:     "",
+		}
 		return err
 	}
 
-	*resp = "http://localhost:5173/login" + "?token=" + token.RawToken
+	*resp = RPCLoginResponse{
+		Error:   false,
+		Success: true,
+		Message: "login successful",
+		URL:     "http://localhost:5173/login" + "?token=" + token.RawToken,
+	}
 
 	return nil
 

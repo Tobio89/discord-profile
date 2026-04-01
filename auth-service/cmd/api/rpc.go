@@ -1,35 +1,18 @@
 package main
 
-import "log"
+import (
+	"log"
+
+	rpccontracts "discord-profile/lib/rpc-contracts"
+)
 
 type RPCServer struct{}
 
-type RPCPayload struct {
-	User string
-}
-
-type RPCLoginPayload struct {
-	Username string
-	ID       string
-	Token    string
-}
-
-type RPCLoginResponse struct {
-	Success bool
-	URL     string
-	Message string
-}
-
-type RPCSignupPayload struct {
-	Username string
-	ID       string
-	Token    string
-}
-
-type RPCSignupResponse struct {
-	AlreadyExists bool
-	Message       string
-}
+type RPCPayload = rpccontracts.Payload
+type RPCLoginPayload = rpccontracts.LoginPayload
+type RPCLoginResponse = rpccontracts.LoginResponse
+type RPCSignupPayload = rpccontracts.SignupPayload
+type RPCSignupResponse = rpccontracts.SignupResponse
 
 func (r *RPCServer) GetLoginURL(payload RPCPayload, resp *string) error {
 
@@ -40,7 +23,7 @@ func (r *RPCServer) GetLoginURL(payload RPCPayload, resp *string) error {
 	return nil
 }
 
-func (r *RPCServer) RequestLogin(payload RPCLoginPayload, resp *string) error {
+func (r *RPCServer) RequestLogin(payload RPCLoginPayload, resp *RPCLoginResponse) error {
 	return app.HandleLoginRequest(payload, resp)
 }
 
