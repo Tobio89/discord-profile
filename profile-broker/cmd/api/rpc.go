@@ -17,6 +17,17 @@ type RPCLoginPayload struct {
 	Token    string
 }
 
+type RPCSignupPayload struct {
+	Username string
+	ID       string
+	Token    string
+}
+
+type RPCSignupResponse struct {
+	AlreadyExists bool
+	Message       string
+}
+
 func (r *RPCServer) LogInfo(payload RPCPayload, resp *string) error {
 
 	log.Println("broker: received request from: ", payload.User)
@@ -34,6 +45,21 @@ func (r *RPCServer) RequestLogin(payload RPCLoginPayload, resp *string) error {
 	response, err := RPCRequestLogin(payload)
 	if err != nil {
 		log.Println("error while requesting login: ", err)
+	}
+
+	*resp = response
+
+	return nil
+
+}
+
+func (r *RPCServer) RequestSignup(payload RPCSignupPayload, resp *RPCSignupResponse) error {
+	log.Println("broker: received signup request for user: ", payload.Username)
+
+	response, err := RPCRequestSignup(payload)
+	if err != nil {
+		log.Println("error while requesting signup: ", err)
+		return err
 	}
 
 	*resp = response
@@ -69,6 +95,30 @@ func RPCRequestLogin(loginReq RPCLoginPayload) (result string, err error) {
 	if err != nil {
 		log.Println("while calling RPC: ", err)
 		return "", err
+	}
+
+	log.Println("response from RPC: ", result)
+
+	return result, nil
+}
+
+func RPCRequestSignup(signupReq RPCSignupPayload) (result RPCSignupResponse, err error) {
+	client, err := DialRPCServer()
+	if err != nil {
+		log.Println("while dialing RPC server: ", err)
+		return RPCSignupResponse{}, err
+	}
+
+	payload := RPCSignupPayload{
+		Username: signupReq.Username,
+		ID:       signupReq.ID,
+		Token:    signupReq.Token,
+	}
+
+	err = client.Call("RPCServer.RequestSignup", payload, &result)
+	if err != nil {
+		log.Println("while calling RPC: ", err)
+		return RPCSignupResponse{}, err
 	}
 
 	log.Println("response from RPC: ", result)
