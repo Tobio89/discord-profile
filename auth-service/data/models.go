@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -280,7 +281,7 @@ func (u *PostgresRepository) GetUserByDiscordID(discordID string) (*DiscordUser,
 	query := `select id, discord_user_id, created_at, updated_at from users where discord_user_id = $1`
 
 	var user DiscordUser
-	row := db.QueryRowContext(ctx, query, discordID)
+	row := u.Conn.QueryRowContext(ctx, query, discordID)
 
 	err := row.Scan(
 		&user.ID,
@@ -309,7 +310,7 @@ func (u *PostgresRepository) InsertDiscordUser(discordUser DiscordUser) (int, er
 	stmt := `insert into users (discord_user_id, created_at, updated_at)
 		values ($1, $2, $3) returning id`
 
-	err := db.QueryRowContext(ctx, stmt,
+	err := u.Conn.QueryRowContext(ctx, stmt,
 		discordUser.DiscordUserID,
 		time.Now(),
 		time.Now(),
@@ -317,6 +318,43 @@ func (u *PostgresRepository) InsertDiscordUser(discordUser DiscordUser) (int, er
 
 	if err != nil {
 		return 0, err
+	}
+
+	return newID, nil
+}
+
+type MagicLink struct {
+	ID            int64     `json:"id"`
+	DiscordUserID string    `json:"discord_user_id"`
+	TokenHash     string    `json:"token_hash"`
+	ExpiresAt     time.Time `json:"expires_at"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+func (u *PostgresRepository) InsertMagicLink(magicLink MagicLink) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	const stmt = `
+        INSERT INTO magic_links (
+            discord_user_id,
+            token_hash,
+            expires_at
+        )
+        VALUES ($1, $2, $3)
+        RETURNING id
+    `
+
+	var newID int64
+	err := u.Conn.QueryRowContext(
+		ctx,
+		stmt,
+		magicLink.DiscordUserID,
+		magicLink.TokenHash,
+		magicLink.ExpiresAt,
+	).Scan(&newID)
+	if err != nil {
+		return 0, fmt.Errorf("insert magic link: %w", err)
 	}
 
 	return newID, nil
