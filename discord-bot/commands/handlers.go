@@ -7,23 +7,75 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+//   "Looks like you're new to the app! Use `/create-profile` to get started."
+
+// func (c *Commands) HandleLoginRequest(i *discordgo.InteractionCreate) {
+// 	log.Println("sending RPC request")
+// 	// result := rpc.MakeRPCCall(username)
+// 	result, err := rpc.RPCRequestLogin(rpc.LoginRequest{
+// 		Username: i.Member.User.Username,
+// 		ID:       i.Member.User.ID,
+// 		Token:    i.Member.User.Token,
+// 	})
+
+// 	if err != nil {
+// 		log.Println("error while making RPC call: ", err)
+// 		c.SendResponse(i, "Sorry, something went wrong while processing your request. Please try again later.")
+// 		return
+// 	}
+
+// 	log.Println("RPC response: ", result)
+// 	c.SendResponse(i, "Here's your login link: "+result)
+// }
+
 func (c *Commands) HandleLoginRequest(i *discordgo.InteractionCreate) {
-	log.Println("sending RPC request")
-	// result := rpc.MakeRPCCall(username)
-	result, err := rpc.RPCRequestLogin(rpc.LoginRequest{
+	// Set response to be ephemeral and deferred
+	flags := discordgo.MessageFlags(0)
+	flags = discordgo.MessageFlagsEphemeral
+
+	// Start the deferred response (waiting...)
+	if err := bot.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{Flags: flags},
+	}); err != nil {
+		log.Printf("failed to send deferred response: %v", err)
+		return
+	}
+
+	// Request signup using RPC
+	result, err := rpc.RPCRequestLogin(rpc.RPCLoginPayload{
 		Username: i.Member.User.Username,
 		ID:       i.Member.User.ID,
 		Token:    i.Member.User.Token,
 	})
 
+	var content string
+
+	// RPC Error handling
 	if err != nil {
 		log.Println("error while making RPC call: ", err)
-		c.SendResponse(i, "Sorry, something went wrong while processing your request. Please try again later.")
+		content = "Sorry, something went wrong while processing your request. Please try again later."
+		if _, err := bot.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: &content,
+		}); err != nil {
+			log.Printf("failed to edit deferred response: %v", err)
+		}
 		return
 	}
 
-	log.Println("RPC response: ", result)
-	c.SendResponse(i, "Here's your login link: "+result)
+	// Set response content based on RPC result
+	content = "Looks like you're new to the app! Use `/create-profile` to get started."
+	if result != "" {
+		content = "Here's your login link: " + result
+	}
+
+	// Respond to signup interaction
+	if _, err := bot.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content: &content,
+	}); err != nil {
+		log.Printf("failed to edit deferred response: %v", err)
+	}
+
 }
 
 func (c *Commands) HandleSignupRequest(i *discordgo.InteractionCreate) {

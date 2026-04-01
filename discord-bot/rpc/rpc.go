@@ -64,20 +64,14 @@ func MakeRPCCall(username string) (result string) {
 
 }
 
-func RPCRequestLogin(loginReq LoginRequest) (result string, err error) {
+func RPCRequestLogin(loginReq RPCLoginPayload) (result string, err error) {
 	client, err := DialRPCServer()
 	if err != nil {
 		log.Println("while dialing RPC server: ", err)
 		return "", err
 	}
 
-	payload := RPCLoginPayload{
-		Username: loginReq.Username,
-		ID:       loginReq.ID,
-		Token:    loginReq.Token,
-	}
-
-	err = client.Call("RPCServer.RequestLogin", payload, &result)
+	err = client.Call("RPCServer.RequestLogin", loginReq, &result)
 	if err != nil {
 		log.Println("while calling RPC: ", err)
 		return "", err
