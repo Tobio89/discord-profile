@@ -14,6 +14,17 @@ type RPCLoginPayload struct {
 	Token    string
 }
 
+type RPCSignupPayload struct {
+	Username string
+	ID       string
+	Token    string
+}
+
+type RPCSignupResponse struct {
+	AlreadyExists bool
+	Message       string
+}
+
 func (r *RPCServer) GetLoginURL(payload RPCPayload, resp *string) error {
 
 	log.Println("auth: received request from: ", payload.User)
@@ -24,10 +35,9 @@ func (r *RPCServer) GetLoginURL(payload RPCPayload, resp *string) error {
 }
 
 func (r *RPCServer) RequestLogin(payload RPCLoginPayload, resp *string) error {
-	log.Println("auth: received login request for user: ", payload.Username)
+	return handleLoginRequest(payload, resp)
+}
 
-	*resp = "http://localhost:5173/" + "?user=" + payload.Username + "&id=" + payload.ID
-
-	return nil
-
+func (r *RPCServer) RequestSignup(payload RPCSignupPayload, resp *RPCSignupResponse) error {
+	return app.HandleSignupRequest(payload, resp)
 }

@@ -25,9 +25,11 @@ type Config struct {
 	Repo data.Repository
 }
 
+var app Config
+
 func main() {
 
-	app := Config{}
+	app = Config{}
 
 	dbConnection := connectToDB()
 	if dbConnection == nil {

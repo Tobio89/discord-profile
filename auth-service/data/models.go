@@ -181,21 +181,6 @@ func (u *PostgresRepository) Update(user User) error {
 	return nil
 }
 
-// Delete deletes one user from the database, by User.ID
-// func (u *PostgresRepository) Delete() error {
-// 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
-// 	defer cancel()
-
-// 	stmt := `delete from users where id = $1`
-
-// 	_, err := db.ExecContext(ctx, stmt, u.ID)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
 // DeleteByID deletes one user from the database, by ID
 func (u *PostgresRepository) DeleteByID(id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
@@ -277,4 +262,62 @@ func (u *PostgresRepository) PasswordMatches(plainText string, user User) (bool,
 	}
 
 	return true, nil
+}
+
+//
+
+type DiscordUser struct {
+	ID            int       `json:"id"`
+	DiscordUserID string    `json:"discord_user_id"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+func (u *PostgresRepository) GetUserByDiscordID(discordID string) (*DiscordUser, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `select id, discord_user_id, created_at, updated_at from users where discord_user_id = $1`
+
+	var user DiscordUser
+	row := db.QueryRowContext(ctx, query, discordID)
+
+	err := row.Scan(
+		&user.ID,
+		&user.DiscordUserID,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		// ErrNoRows means there was no user, which is acceptable
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (u *PostgresRepository) InsertDiscordUser(discordUser DiscordUser) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	var newID int
+	stmt := `insert into users (discord_user_id, created_at, updated_at)
+		values ($1, $2, $3) returning id`
+
+	err := db.QueryRowContext(ctx, stmt,
+		discordUser.DiscordUserID,
+		time.Now(),
+		time.Now(),
+	).Scan(&newID)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return newID, nil
 }
