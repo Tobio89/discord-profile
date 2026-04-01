@@ -65,8 +65,8 @@ func (c *Commands) HandleLoginRequest(i *discordgo.InteractionCreate) {
 
 	// Set response content based on RPC result
 	content = "Looks like you're new to the app! Use `/create-profile` to get started."
-	if result != "" {
-		content = "Here's your login link: " + result
+	if result.Success == true {
+		content = "Here's your login link: " + result.URL
 	}
 
 	// Respond to signup interaction

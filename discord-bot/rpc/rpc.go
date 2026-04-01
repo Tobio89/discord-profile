@@ -14,6 +14,13 @@ type RPCLoginPayload struct {
 	ID       string
 	Token    string
 }
+
+type RPCLoginResponse struct {
+	Success bool
+	URL     string
+	Message string
+}
+
 type LoginRequest struct {
 	Username string
 	ID       string
@@ -64,17 +71,17 @@ func MakeRPCCall(username string) (result string) {
 
 }
 
-func RPCRequestLogin(loginReq RPCLoginPayload) (result string, err error) {
+func RPCRequestLogin(loginReq RPCLoginPayload) (result RPCLoginResponse, err error) {
 	client, err := DialRPCServer()
 	if err != nil {
 		log.Println("while dialing RPC server: ", err)
-		return "", err
+		return RPCLoginResponse{Success: false, Message: "unable to connect to auth"}, err
 	}
 
 	err = client.Call("RPCServer.RequestLogin", loginReq, &result)
 	if err != nil {
 		log.Println("while calling RPC: ", err)
-		return "", err
+		return RPCLoginResponse{Success: false, Message: "unable to login"}, err
 	}
 
 	log.Println("response from RPC: ", result)
