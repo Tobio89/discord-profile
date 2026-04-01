@@ -13,3 +13,9 @@ var LoginDeferredCommand = &discordgo.ApplicationCommand{
 	Type:        discordgo.ChatApplicationCommand,
 	Description: "Login to the profile page via the bot",
 }
+
+var SignupCommand = &discordgo.ApplicationCommand{
+	Name:        "create-profile",
+	Type:        discordgo.ChatApplicationCommand,
+	Description: "Signup for the profile page via the bot",
+}

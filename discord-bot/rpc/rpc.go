@@ -20,6 +20,17 @@ type LoginRequest struct {
 	Token    string
 }
 
+type RPCSignupPayload struct {
+	Username string
+	ID       string
+	Token    string
+}
+
+type RPCSignupResponse struct {
+	AlreadyExists bool
+	Message       string
+}
+
 func DialRPCServer() (*rpc.Client, error) {
 	client, err := rpc.Dial("tcp", "profile-broker:5001")
 	if err != nil {
@@ -27,6 +38,29 @@ func DialRPCServer() (*rpc.Client, error) {
 	}
 
 	return client, nil
+
+}
+
+func MakeRPCCall(username string) (result string) {
+	client, err := DialRPCServer()
+	if err != nil {
+		log.Println("while dialing RPC server: ", err)
+		return
+	}
+
+	rpcPayload := RPCPayload{
+		User: username,
+	}
+
+	err = client.Call("RPCServer.LogInfo", rpcPayload, &result)
+	if err != nil {
+		log.Println("while calling RPC: ", err)
+		return
+	}
+
+	log.Println("response from RPC: ", result)
+
+	return result
 
 }
 
@@ -54,25 +88,26 @@ func RPCRequestLogin(loginReq LoginRequest) (result string, err error) {
 	return result, nil
 }
 
-func MakeRPCCall(username string) (result string) {
+func RPCRequestSignup(signupReq RPCSignupPayload) (result RPCSignupResponse, err error) {
 	client, err := DialRPCServer()
 	if err != nil {
 		log.Println("while dialing RPC server: ", err)
-		return
+		return RPCSignupResponse{}, err
 	}
 
-	rpcPayload := RPCPayload{
-		User: username,
+	payload := RPCSignupPayload{
+		Username: signupReq.Username,
+		ID:       signupReq.ID,
+		Token:    signupReq.Token,
 	}
 
-	err = client.Call("RPCServer.LogInfo", rpcPayload, &result)
+	err = client.Call("RPCServer.RequestSignup", payload, &result)
 	if err != nil {
 		log.Println("while calling RPC: ", err)
-		return
+		return RPCSignupResponse{}, err
 	}
 
 	log.Println("response from RPC: ", result)
 
-	return result
-
+	return result, nil
 }

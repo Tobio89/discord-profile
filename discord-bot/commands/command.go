@@ -28,7 +28,13 @@ func (c *Commands) InitializeCommands() {
 }
 
 func (c *Commands) registerCommands() {
-	_, err := bot.ApplicationCommandCreate(c.cfg.BotID, c.cfg.GuildID, LoginCommand)
+
+	_, err := bot.ApplicationCommandCreate(c.cfg.BotID, c.cfg.GuildID, SignupCommand)
+	if err != nil {
+		log.Println("whilst adding signup command: ", err)
+	}
+
+	_, err = bot.ApplicationCommandCreate(c.cfg.BotID, c.cfg.GuildID, LoginCommand)
 	if err != nil {
 		log.Println("whilst adding login command: ", err)
 	}
@@ -36,6 +42,7 @@ func (c *Commands) registerCommands() {
 	if err != nil {
 		log.Println("whilst adding login-slowly command: ", err)
 	}
+
 }
 
 func (c *Commands) registerHandlers() {
@@ -60,6 +67,10 @@ func (c *Commands) regularCommandGroup(s *discordgo.Session, i *discordgo.Intera
 	case "login-slowly":
 		log.Printf("user %s is trying to login via the bot using deferred login", interactionMember.User.Username)
 		c.SendDeferredResponse(i, "After waiting... here's your login link: http://localhost:5173/", true, 3*time.Second)
+
+	case "create-profile":
+		log.Printf("user %s is trying to signup via the bot", interactionMember.User.Username)
+		c.HandleSignupRequest(i)
 	}
 }
 
