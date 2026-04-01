@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"discord-profile/auth-service/data"
+	"discord-profile/auth-service/magiclink"
 	b64 "encoding/base64"
 	"log"
 )
@@ -38,12 +39,9 @@ func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *string) err
 		return nil
 	}
 
-	secureHash := make([]byte, 32)
-	rand.Read(secureHash)
+	token, err := magiclink.IssueToken(app.TokenPepper)
 
-	sEnc := b64.StdEncoding.EncodeToString([]byte(secureHash))
-
-	*resp = "http://localhost:5173/login" + "?token=" + string(sEnc)
+	*resp = "http://localhost:5173/login" + "?token=" + token.RawToken
 
 	return nil
 

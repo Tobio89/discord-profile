@@ -22,14 +22,21 @@ const connectionRetryLimit = 10
 var connectionRetryCount int64
 
 type Config struct {
-	Repo data.Repository
+	Repo        data.Repository
+	TokenPepper string
 }
 
 var app Config
 
 func main() {
 
-	app = Config{}
+	app = Config{
+		TokenPepper: os.Getenv("TOKEN_SECRET"),
+	}
+
+	if app.TokenPepper == "" {
+		log.Panicln("No token pepper provided")
+	}
 
 	dbConnection := connectToDB()
 	if dbConnection == nil {
