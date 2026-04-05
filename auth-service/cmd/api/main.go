@@ -24,6 +24,7 @@ var connectionRetryCount int64
 type Config struct {
 	Repo        data.Repository
 	TokenPepper string
+	JWTKey      string
 }
 
 var app Config
@@ -32,10 +33,15 @@ func main() {
 
 	app = Config{
 		TokenPepper: os.Getenv("TOKEN_SECRET"),
+		JWTKey:      os.Getenv("JWT_SIGNING_KEY"),
 	}
 
 	if app.TokenPepper == "" {
 		log.Panicln("No token pepper provided")
+	}
+
+	if app.JWTKey == "" {
+		log.Panicln("No JWT signing key provided")
 	}
 
 	dbConnection := connectToDB()

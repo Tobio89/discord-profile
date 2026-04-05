@@ -35,4 +35,5 @@ type TokenCheckPayload struct {
 type TokenCheckResponse struct {
 	UserID  string
 	Message string
+	JWT     string
 }

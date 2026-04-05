@@ -43,6 +43,7 @@ services:
       replicas: 1
     env_file:
       - ./auth-service/dev.env
+      - ./secrets.env
 
   postgres:
     image: 'postgres:14.2'

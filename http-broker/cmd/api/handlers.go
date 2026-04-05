@@ -40,10 +40,18 @@ func (app *Config) PostValidateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	data := struct {
+		UserID string `json:"user_id"`
+		JWT    string `json:"jwt"`
+	}{
+		UserID: rpcResponse.UserID,
+		JWT:    rpcResponse.JWT,
+	}
+
 	app.writeJSON(w, http.StatusOK, jsonValidationResponse{
 		Error:   false,
-		Message: "token is valid",
-		Data:    rpcResponse,
+		Message: "validation successful",
+		Data:    data,
 	})
 
 }

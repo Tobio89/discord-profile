@@ -3,6 +3,7 @@ module discord-profile/auth-service
 go 1.25.4
 
 require (
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/jackc/pgconn v1.14.3
 	github.com/jackc/pgx/v4 v4.18.3
 	golang.org/x/crypto v0.49.0

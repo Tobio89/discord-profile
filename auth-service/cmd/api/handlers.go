@@ -7,6 +7,8 @@ import (
 	b64 "encoding/base64"
 	"log"
 	"time"
+
+	"github.com/golang-jwt/jwt"
 )
 
 func handleLoginRequest(payload RPCLoginPayload, resp *string) error {
@@ -139,19 +141,20 @@ func (app *Config) HandleTokenCheckRequest(payload RPCTokenCheckPayload, resp *R
 	if err != nil {
 		log.Println("Error decoding token: ", err)
 		resp.UserID = ""
+		resp.JWT = ""
 		resp.Message = "invalid token"
 		return nil
 	}
 
 	hashedToken := magiclink.HashTokenBytes(decodedTokenBytes, app.TokenPepper)
 	log.Println("auth: received token check request for token: ", payload.Token)
-	log.Println("auth: token hashes to: ", hashedToken)
 
 	userID, err := app.Repo.ConsumeMagicLink(hashedToken)
 
 	if err != nil {
 		log.Println("Error consuming magic link: ", err)
 		resp.UserID = ""
+		resp.JWT = ""
 		resp.Message = "error consuming magic link"
 		return err
 	}
@@ -159,12 +162,40 @@ func (app *Config) HandleTokenCheckRequest(payload RPCTokenCheckPayload, resp *R
 	if userID == "" {
 		log.Println("Invalid or expired token: ", payload.Token)
 		resp.UserID = ""
+		resp.JWT = ""
 		resp.Message = "invalid or expired token"
 		return nil
 	}
 
+	jwt, err := app.issueJWTForUser(userID)
+	if err != nil {
+		log.Println("Error issuing JWT: ", err)
+		resp.UserID = ""
+		resp.JWT = ""
+		resp.Message = "error issuing JWT"
+		return err
+	}
+
 	log.Println("Successfully consumed magic link for user ID: ", userID)
 	resp.UserID = userID
+	resp.JWT = jwt
 	resp.Message = "token valid"
+
 	return nil
+}
+
+func (app *Config) issueJWTForUser(userID string) (string, error) {
+
+	key := []byte(app.JWTKey)
+	claims := jwt.MapClaims{
+		"sub": userID,
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"iat": time.Now().Unix(),
+		"iss": "auth-service",
+	}
+
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return t.SignedString(key)
+
 }
