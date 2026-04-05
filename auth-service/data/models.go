@@ -331,6 +331,12 @@ type MagicLink struct {
 	CreatedAt     time.Time `json:"created_at"`
 }
 
+type TokenResult struct {
+	Success    bool
+	TokenValid bool
+	Message    string
+}
+
 func (u *PostgresRepository) InsertMagicLink(magicLink MagicLink) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -358,4 +364,111 @@ func (u *PostgresRepository) InsertMagicLink(magicLink MagicLink) (int64, error)
 	}
 
 	return newID, nil
+}
+
+func (u *PostgresRepository) ReplaceMagicLinkForUser(magicLink MagicLink) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	tx, err := u.Conn.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	const lockUser = `
+        SELECT id
+        FROM users
+        WHERE discord_user_id = $1
+        FOR UPDATE
+    `
+
+	var userID int64
+	err = tx.QueryRowContext(ctx, lockUser, magicLink.DiscordUserID).Scan(&userID)
+	if err != nil {
+		return 0, fmt.Errorf("lock user: %w", err)
+	}
+
+	const deleteQuery = `
+				DELETE FROM magic_links
+				WHERE discord_user_id = $1
+		`
+	_, err = tx.ExecContext(ctx, deleteQuery, magicLink.DiscordUserID)
+	if err != nil {
+		return 0, fmt.Errorf("delete magic links: %w", err)
+	}
+
+	const insertQuery = `
+        INSERT INTO magic_links (
+            discord_user_id,
+            token_hash,
+            expires_at
+        )
+        VALUES ($1, $2, $3)
+        RETURNING id
+    `
+
+	var newID int64
+	err = tx.QueryRowContext(
+		ctx,
+		insertQuery,
+		magicLink.DiscordUserID,
+		magicLink.TokenHash,
+		magicLink.ExpiresAt,
+	).Scan(&newID)
+	if err != nil {
+		return 0, fmt.Errorf("insert magic link: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("commit tx: %w", err)
+	}
+
+	return newID, nil
+}
+
+// Receiving the token hash, verify that it's in the DB, and is valid.
+func (u *PostgresRepository) ConsumeMagicLink(tokenHash string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	tx, err := u.Conn.BeginTx(ctx, nil)
+	if err != nil {
+		return "", fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	const consumeQuery = `
+        DELETE FROM magic_links
+        WHERE token_hash = $1
+          AND expires_at > NOW()
+        RETURNING discord_user_id
+    `
+
+	var discordUserID string
+	err = tx.QueryRowContext(ctx, consumeQuery, tokenHash).Scan(&discordUserID)
+	if err != nil {
+
+		// ErrNoRows means there was no hash, which is acceptable
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+
+		return "", fmt.Errorf("lock user: %w", err)
+	}
+
+	const deleteQuery = `
+				DELETE FROM magic_links
+				WHERE discord_user_id = $1
+		`
+	_, err = tx.ExecContext(ctx, deleteQuery, discordUserID)
+	if err != nil {
+		return "", fmt.Errorf("delete magic links: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return "", fmt.Errorf("commit tx: %w", err)
+	}
+
+	return discordUserID, nil
 }

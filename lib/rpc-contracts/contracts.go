@@ -27,3 +27,12 @@ type SignupResponse struct {
 	AlreadyExists bool
 	Message       string
 }
+
+type TokenCheckPayload struct {
+	Token string
+}
+
+type TokenCheckResponse struct {
+	UserID  string
+	Message string
+}

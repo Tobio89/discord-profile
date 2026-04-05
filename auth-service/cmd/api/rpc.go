@@ -13,6 +13,8 @@ type RPCLoginPayload = rpccontracts.LoginPayload
 type RPCLoginResponse = rpccontracts.LoginResponse
 type RPCSignupPayload = rpccontracts.SignupPayload
 type RPCSignupResponse = rpccontracts.SignupResponse
+type RPCTokenCheckPayload = rpccontracts.TokenCheckPayload
+type RPCTokenCheckResponse = rpccontracts.TokenCheckResponse
 
 func (r *RPCServer) GetLoginURL(payload RPCPayload, resp *string) error {
 
@@ -29,4 +31,8 @@ func (r *RPCServer) RequestLogin(payload RPCLoginPayload, resp *RPCLoginResponse
 
 func (r *RPCServer) RequestSignup(payload RPCSignupPayload, resp *RPCSignupResponse) error {
 	return app.HandleSignupRequest(payload, resp)
+}
+
+func (r *RPCServer) CheckToken(payload RPCTokenCheckPayload, resp *RPCTokenCheckResponse) error {
+	return app.HandleTokenCheckRequest(payload, resp)
 }

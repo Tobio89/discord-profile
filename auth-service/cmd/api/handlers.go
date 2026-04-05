@@ -6,6 +6,7 @@ import (
 	"discord-profile/auth-service/magiclink"
 	b64 "encoding/base64"
 	"log"
+	"time"
 )
 
 func handleLoginRequest(payload RPCLoginPayload, resp *string) error {
@@ -28,6 +29,7 @@ func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *RPCLoginRes
 	// Check if user already exists in the database
 	dbUser, err := app.Repo.GetUserByDiscordID(payload.ID)
 
+	// Error performing database lookup
 	if err != nil {
 		log.Println("Error checking for existing user: ", err)
 		*resp = RPCLoginResponse{
@@ -39,6 +41,7 @@ func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *RPCLoginRes
 		return err
 	}
 
+	// User is not in the database, so we can't log them in
 	if dbUser == nil {
 		*resp = RPCLoginResponse{
 			Error:   false,
@@ -49,6 +52,7 @@ func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *RPCLoginRes
 		return nil
 	}
 
+	// Prepare token for magic link
 	token, err := magiclink.IssueToken(app.TokenPepper)
 	if err != nil {
 		log.Println("Error issuing token: ", err)
@@ -56,6 +60,26 @@ func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *RPCLoginRes
 			Error:   true,
 			Success: false,
 			Message: "error issuing token",
+			URL:     "",
+		}
+		return err
+	}
+
+	expiry := time.Now().Add(15 * time.Minute)
+
+	// Insert magic link into database, replacing any existing magic links for this user
+	_, err = app.Repo.ReplaceMagicLinkForUser(data.MagicLink{
+		DiscordUserID: payload.ID,
+		TokenHash:     token.TokenHash,
+		ExpiresAt:     expiry,
+	})
+
+	if err != nil {
+		log.Println("Error inserting magic link: ", err)
+		*resp = RPCLoginResponse{
+			Error:   true,
+			Success: false,
+			Message: "error inserting magic link",
 			URL:     "",
 		}
 		return err
@@ -107,4 +131,30 @@ func (app *Config) HandleSignupRequest(payload RPCSignupPayload, resp *RPCSignup
 	log.Println("Successfully inserted new user with ID: ", userID)
 	return nil
 
+}
+
+func (app *Config) HandleTokenCheckRequest(payload RPCTokenCheckPayload, resp *RPCTokenCheckResponse) error {
+	log.Println("auth: received token check request for token: ", payload.Token)
+
+	hashedToken := magiclink.HashTokenBytes([]byte(payload.Token), app.TokenPepper)
+
+	userID, err := app.Repo.ConsumeMagicLink(hashedToken)
+	if err != nil {
+		log.Println("Error consuming magic link: ", err)
+		resp.UserID = ""
+		resp.Message = "error consuming magic link"
+		return err
+	}
+
+	if userID == "" {
+		log.Println("Invalid or expired token: ", payload.Token)
+		resp.UserID = ""
+		resp.Message = "invalid or expired token"
+		return nil
+	}
+
+	log.Println("Successfully consumed magic link for user ID: ", userID)
+	resp.UserID = userID
+	resp.Message = "token valid"
+	return nil
 }
