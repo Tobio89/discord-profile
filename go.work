@@ -5,4 +5,5 @@ use (
 	./discord-bot
 	./lib/rpc-contracts
 	./profile-broker
+	./http-broker
 )
