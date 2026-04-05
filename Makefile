@@ -1,5 +1,6 @@
 BOT_BINARY=discord-bot
 BROKER_BINARY=profile-broker
+HTTP_BROKER_BINARY=http-broker
 AUTH_BINARY=auth-service
 
 ## Build the bot for running locally on Mac`
@@ -11,6 +12,11 @@ build_bot_mac:
 build_broker_mac:
 	@echo "Building broker for Mac..."
 	cd ./profile-broker && go build -o ./dist/$(BROKER_BINARY)-mac ./cmd/api
+	echo "Done!"
+
+build_http_broker_mac:
+	@echo "Building http broker for Mac..."
+	cd ./http-broker && go build -o ./dist/$(HTTP_BROKER_BINARY)-mac ./cmd/api
 	echo "Done!"
 
 build_auth_mac:
@@ -29,12 +35,17 @@ build_broker:
 	cd ./profile-broker && env GOOS=linux CGO_ENABLED=0 go build -o ./dist/$(BROKER_BINARY) ./cmd/api
 	@echo "Done!"
 
+build_http_broker:
+	@echo "Building http broker for Docker..."
+	cd ./http-broker && env GOOS=linux CGO_ENABLED=0 go build -o ./dist/$(HTTP_BROKER_BINARY) ./cmd/api
+	@echo "Done!"
+
 build_auth:
 	@echo "Building auth for Docker..."
 	cd ./auth-service && env GOOS=linux CGO_ENABLED=0 go build -o ./dist/$(AUTH_BINARY) ./cmd/api
 	@echo "Done!"
 
-up_build: build_bot build_broker build_auth
+up_build: build_bot build_broker build_auth build_http_broker
 	@echo "Stopping and removing existing containers..."
 	docker compose down
 	@echo "Starting new containers with the latest builds..."

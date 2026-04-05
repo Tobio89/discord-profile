@@ -17,8 +17,18 @@ services:
       context: ./profile-broker
       dockerfile: ./broker.dockerfile
     restart: always
+
+    deploy:
+      mode: replicated
+      replicas: 1
+  http-broker:
+    build:
+      context: ./http-broker
+      dockerfile: ./http-broker.dockerfile
+    restart: always
     ports:
-      - "8080:80"
+      - "4455:4455"
+
     deploy:
       mode: replicated
       replicas: 1
