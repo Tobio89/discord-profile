@@ -19,23 +19,23 @@ func DialRPCServer() (*rpc.Client, error) {
 
 }
 
-func RPCRequestTokenValidation(rawToken string) (result string, err error) {
+func RPCRequestTokenValidation(rawToken string) (result RPCTokenCheckResponse, err error) {
 	client, err := DialRPCServer()
 	if err != nil {
 		log.Println("while dialing RPC server: ", err)
-		return "", err
+		return rpccontracts.TokenCheckResponse{UserID: "", Message: "error validating token"}, err
 	}
 
 	payload := RPCTokenCheckPayload{
 		Token: rawToken,
 	}
 
-	response := RPCTokenCheckResponse{}
-
-	err = client.Call("RPCServer.RequestSignup", payload, &response)
+	err = client.Call("RPCServer.CheckToken", payload, &result)
 	if err != nil {
 		log.Println("while calling RPC: ", err)
-		return "", err
+		return rpccontracts.TokenCheckResponse{UserID: "",
+			Message: "error validating token",
+		}, err
 	}
 
 	log.Println("response from RPC: ", result)

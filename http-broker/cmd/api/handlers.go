@@ -31,6 +31,15 @@ func (app *Config) PostValidateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if rpcResponse.UserID == "" {
+		app.writeJSON(w, http.StatusBadRequest, jsonValidationResponse{
+			Error:   true,
+			Message: "token is invalid",
+			Data:    rpcResponse,
+		})
+		return
+	}
+
 	app.writeJSON(w, http.StatusOK, jsonValidationResponse{
 		Error:   false,
 		Message: "token is valid",

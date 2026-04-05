@@ -134,11 +134,21 @@ func (app *Config) HandleSignupRequest(payload RPCSignupPayload, resp *RPCSignup
 }
 
 func (app *Config) HandleTokenCheckRequest(payload RPCTokenCheckPayload, resp *RPCTokenCheckResponse) error {
-	log.Println("auth: received token check request for token: ", payload.Token)
 
-	hashedToken := magiclink.HashTokenBytes([]byte(payload.Token), app.TokenPepper)
+	decodedTokenBytes, err := magiclink.DecodeToken(payload.Token)
+	if err != nil {
+		log.Println("Error decoding token: ", err)
+		resp.UserID = ""
+		resp.Message = "invalid token"
+		return nil
+	}
+
+	hashedToken := magiclink.HashTokenBytes(decodedTokenBytes, app.TokenPepper)
+	log.Println("auth: received token check request for token: ", payload.Token)
+	log.Println("auth: token hashes to: ", hashedToken)
 
 	userID, err := app.Repo.ConsumeMagicLink(hashedToken)
+
 	if err != nil {
 		log.Println("Error consuming magic link: ", err)
 		resp.UserID = ""
