@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"net/rpc"
 )
 
 const rpcPort = "5001"
+const httpPort = "4455"
 
 type Config struct{}
 
@@ -21,6 +23,18 @@ func main() {
 	}
 
 	go app.rpcListen()
+
+	log.Printf("profile-broker listening for HTTP on %s\n", httpPort)
+
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", httpPort),
+		Handler: app.routes(),
+	}
+
+	err = srv.ListenAndServe()
+	if err != nil {
+		log.Panic(err)
+	}
 
 	select {}
 
