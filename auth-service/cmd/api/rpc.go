@@ -15,6 +15,8 @@ type RPCSignupPayload = rpccontracts.SignupPayload
 type RPCSignupResponse = rpccontracts.SignupResponse
 type RPCTokenCheckPayload = rpccontracts.TokenCheckPayload
 type RPCTokenCheckResponse = rpccontracts.TokenCheckResponse
+type JWTValidationPayload = rpccontracts.JWTValidationPayload
+type JWTValidationResponse = rpccontracts.JWTValidationResponse
 
 func (r *RPCServer) GetLoginURL(payload RPCPayload, resp *string) error {
 
@@ -35,4 +37,8 @@ func (r *RPCServer) RequestSignup(payload RPCSignupPayload, resp *RPCSignupRespo
 
 func (r *RPCServer) CheckToken(payload RPCTokenCheckPayload, resp *RPCTokenCheckResponse) error {
 	return app.HandleTokenCheckRequest(payload, resp)
+}
+
+func (r *RPCServer) ValidateJWT(payload JWTValidationPayload, resp *JWTValidationResponse) error {
+	return app.HandleJWTValidationRequest(payload, resp)
 }

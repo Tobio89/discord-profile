@@ -184,6 +184,80 @@ func (app *Config) HandleTokenCheckRequest(payload RPCTokenCheckPayload, resp *R
 	return nil
 }
 
+func (app *Config) HandleJWTValidationRequest(payload JWTValidationPayload, resp *JWTValidationResponse) error {
+	key := []byte(app.JWTKey)
+
+	token, err := jwt.Parse(payload.Token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrSignatureInvalid
+		}
+
+		if token.Method != jwt.SigningMethodHS256 {
+			return nil, jwt.ErrSignatureInvalid
+		}
+		return key, nil
+	})
+
+	if err != nil {
+		log.Println("Error parsing JWT: ", err)
+		resp.UserID = ""
+		resp.Message = "invalid token"
+		resp.Valid = false
+		return nil
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		userID, ok := claims["sub"].(string)
+		if !ok {
+			log.Println("JWT does not contain valid 'sub' claim")
+			resp.UserID = ""
+			resp.Message = "invalid token claims"
+			resp.Valid = false
+			return nil
+		}
+
+		iss, ok := claims["iss"].(string)
+		if !ok || iss != "auth-service" {
+			log.Println("JWT does not contain valid 'iss' claim")
+			resp.UserID = ""
+			resp.Message = "invalid token claims"
+			resp.Valid = false
+			return nil
+		}
+
+		expiryUnix, ok := claims["exp"].(float64)
+		if !ok {
+			log.Println("JWT does not contain valid 'exp' claim")
+			resp.UserID = ""
+			resp.Message = "invalid token claims"
+			resp.Valid = false
+			return nil
+		}
+
+		expiryTime := time.Unix(int64(expiryUnix), 0)
+		if time.Now().After(expiryTime) {
+			log.Println("JWT token has expired")
+			resp.UserID = ""
+			resp.Message = "token expired"
+			resp.Valid = false
+			return nil
+		}
+
+		log.Println("Valid JWT token for user ID: ", userID)
+
+		resp.UserID = userID
+		resp.Message = "token valid"
+		resp.Valid = true
+		return nil
+	} else {
+		log.Println("Invalid JWT token")
+		resp.UserID = ""
+		resp.Message = "invalid token"
+		resp.Valid = false
+		return nil
+	}
+}
+
 func (app *Config) issueJWTForUser(userID string) (string, error) {
 
 	key := []byte(app.JWTKey)

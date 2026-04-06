@@ -37,3 +37,13 @@ type TokenCheckResponse struct {
 	Message string
 	JWT     string
 }
+
+type JWTValidationPayload struct {
+	Token string
+}
+
+type JWTValidationResponse struct {
+	Valid   bool
+	UserID  string
+	Message string
+}
