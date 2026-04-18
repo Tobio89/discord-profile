@@ -82,6 +82,43 @@ func (app *Config) GetValidateToken(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (app *Config) GetCheckToken(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		app.writeJSON(w, http.StatusUnauthorized, jsonValidationResponse{
+			Error:   true,
+			Message: "No session cookie found",
+			Data:    nil,
+		})
+		return
+	}
+
+	jwt := cookie.Value
+	if jwt == "" {
+		app.writeJSON(w, http.StatusUnauthorized, jsonValidationResponse{
+			Error:   true,
+			Message: "Session cookie is empty",
+			Data:    nil,
+		})
+		return
+	}
+
+	rpcResponse, err := RPCRequestJWTValidation(jwt)
+	if err != nil {
+		app.writeJSON(w, http.StatusInternalServerError, jsonValidationResponse{
+			Error:   true,
+			Message: "error validating token",
+		})
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, jsonValidationResponse{
+		Error:   false,
+		Message: "JWT validation result",
+		Data:    rpcResponse,
+	})
+}
+
 func (app *Config) Root(w http.ResponseWriter, r *http.Request) {
 	app.writeJSON(w, http.StatusOK, jsonValidationResponse{
 		Error:   false,

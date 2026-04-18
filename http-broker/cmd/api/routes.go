@@ -25,6 +25,7 @@ func (app *Config) routes() http.Handler {
 
 	mux.Post("/validate-token/{token}", app.PostValidateToken)
 	mux.Get("/validate-token/{token}", app.GetValidateToken)
+	mux.Get("/check-token", app.GetCheckToken)
 	mux.Get("/", app.Root)
 
 	return mux
