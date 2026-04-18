@@ -42,11 +42,19 @@ func (app *Config) PostValidateToken(w http.ResponseWriter, r *http.Request) {
 
 	data := struct {
 		UserID string `json:"user_id"`
-		JWT    string `json:"jwt"`
 	}{
 		UserID: rpcResponse.UserID,
-		JWT:    rpcResponse.JWT,
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session",
+		Value:    rpcResponse.JWT,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false, // dev only; true in HTTPS/prod
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   60 * 60 * 24,
+	})
 
 	app.writeJSON(w, http.StatusOK, jsonValidationResponse{
 		Error:   false,
@@ -75,7 +83,6 @@ func (app *Config) GetValidateToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Config) Root(w http.ResponseWriter, r *http.Request) {
-
 	app.writeJSON(w, http.StatusOK, jsonValidationResponse{
 		Error:   false,
 		Message: "Welcome to the profile broker API",

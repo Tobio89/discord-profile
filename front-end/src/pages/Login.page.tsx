@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router";
 async function validateToken(token: string) {
   const request = new Request(`http://localhost:4455/validate-token/${token}`, {
     method: "POST",
+    credentials: "include",
   });
 
   try {
