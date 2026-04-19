@@ -6,12 +6,16 @@ interface Props {
 }
 
 export default component$<Props>((props) => {
-  const validateToken$ = $(async function validateToken(token: string) {
+  const validateToken$ = $(async function validateToken(
+    token: string,
+    controller: AbortController,
+  ) {
     const request = new Request(
       `http://localhost:4455/validate-token/${token}`,
       {
         method: "POST",
         credentials: "include",
+        signal: controller.signal,
       },
     );
 
@@ -29,18 +33,12 @@ export default component$<Props>((props) => {
   });
 
   const tokenResource = useResource$<string[]>(({ track, cleanup }) => {
-    // We need a way to re-run fetching data whenever the `github.org` changes.
-    // Use `track` to trigger re-running of this data fetching function.
     track(() => props.token);
-
-    // A good practice is to use `AbortController` to abort the fetching of data if
-    // new request comes in. We create a new `AbortController` and register a `cleanup`
-    // function which is called when this function re-runs.
     const controller = new AbortController();
     cleanup(() => controller.abort());
 
     // Fetch the data and return the promises.
-    return validateToken$(props.token);
+    return validateToken$(props.token, controller);
   });
 
   return (
