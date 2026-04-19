@@ -4,22 +4,23 @@ import type { DocumentHead } from "@builder.io/qwik-city";
 export default component$(() => {
   return (
     <>
-      <h1>Hi 👋</h1>
+      <h1>Discord Profile</h1>
       <div>
-        Can't wait to see what you build with qwik!
-        <br />
-        Happy coding.
+        <p>
+          To log in, visit the discord server, and use <code>/login</code> to
+          get a login link.
+        </p>
       </div>
     </>
   );
 });
 
 export const head: DocumentHead = {
-  title: "Welcome to Qwik",
+  title: "Discord Profile",
   meta: [
     {
       name: "description",
-      content: "Qwik site description",
+      content: "A profile page connected to Discord",
     },
   ],
 };
