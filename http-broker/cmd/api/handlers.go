@@ -42,8 +42,10 @@ func (app *Config) PostValidateToken(w http.ResponseWriter, r *http.Request) {
 
 	data := struct {
 		UserID string `json:"user_id"`
+		JWT    string `json:"jwt"`
 	}{
 		UserID: rpcResponse.UserID,
+		JWT:    rpcResponse.JWT,
 	}
 
 	http.SetCookie(w, &http.Cookie{

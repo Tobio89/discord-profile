@@ -91,7 +91,7 @@ func (app *Config) HandleLoginRequest(payload RPCLoginPayload, resp *RPCLoginRes
 		Error:   false,
 		Success: true,
 		Message: "login successful",
-		URL:     "http://localhost:5173/login" + "?token=" + token.RawToken,
+		URL:     "http://localhost:5173/auth/callback" + "?token=" + token.RawToken,
 	}
 
 	return nil
