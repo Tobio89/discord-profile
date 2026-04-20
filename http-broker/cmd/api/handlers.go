@@ -109,14 +109,21 @@ func (app *Config) GetCheckToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.writeJSON(w, http.StatusInternalServerError, jsonValidationResponse{
 			Error:   true,
-			Message: "error validating token",
+			Message: "Error validating token",
 		})
 		return
 	}
+	if !rpcResponse.Valid {
+		app.writeJSON(w, http.StatusUnauthorized, jsonValidationResponse{
+			Error:   false,
+			Message: "JWT is invalid",
+			Data:    rpcResponse,
+		})
 
+	}
 	app.writeJSON(w, http.StatusOK, jsonValidationResponse{
 		Error:   false,
-		Message: "JWT validation result",
+		Message: "JWT is valid",
 		Data:    rpcResponse,
 	})
 }
