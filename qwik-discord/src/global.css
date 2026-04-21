@@ -47,3 +47,8 @@ main {
   display: flex;
   gap: 1rem;
 }
+
+.error-message {
+  font-weight: bold;
+  color: #b32222;
+}

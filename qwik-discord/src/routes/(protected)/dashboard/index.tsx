@@ -3,11 +3,17 @@ import { type DocumentHead } from "@builder.io/qwik-city";
 
 export default component$(() => {
   return (
-    <div>
-      <h1>Hello!</h1>
-      <p>If you are here, you logged in</p>
-      {/* <p>{JSON.stringify(session)}</p> */}
-    </div>
+    <>
+      <nav class="nav-bar">
+        <a href="/">Home</a>
+      </nav>
+      <main class="container">
+        <h1>Discord Profile: User Page</h1>
+        <div>
+          <p>If you are here, you've probably logged in!</p>
+        </div>
+      </main>
+    </>
   );
 });
 export const head: DocumentHead = {

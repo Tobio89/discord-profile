@@ -5,7 +5,7 @@ export const useAuthGuard = routeLoader$(async ({ cookie, redirect }) => {
   const session = cookie.get("session")?.value;
 
   if (!session) {
-    throw redirect(302, "/login");
+    throw redirect(302, "/login?error=missing-token");
   }
 
   const res = await fetch("http://localhost:4455/check-token", {
@@ -15,7 +15,7 @@ export const useAuthGuard = routeLoader$(async ({ cookie, redirect }) => {
   });
 
   if (!res.ok) {
-    throw redirect(302, "/login");
+    throw redirect(302, "/login?error=invalid-token");
   }
 
   return res.json();
