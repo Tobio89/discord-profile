@@ -5,7 +5,7 @@ export const useValidateToken = routeLoader$(
     const token = url.searchParams.get("token");
 
     if (!token) {
-      throw redirect(302, "/login");
+      throw redirect(302, "/login?error=missing-token");
     }
 
     const request = new Request(
@@ -35,5 +35,17 @@ export const useValidateToken = routeLoader$(
 );
 
 export default () => {
-  return <p>Processing login...</p>;
+  return (
+    <>
+      <nav class="nav-bar">
+        <a href="/">Home</a>
+      </nav>
+      <main class="container">
+        <h1>Discord Profile</h1>
+        <div>
+          <p>Logging you in...</p>
+        </div>
+      </main>
+    </>
+  );
 };

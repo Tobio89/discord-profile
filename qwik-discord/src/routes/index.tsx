@@ -7,7 +7,7 @@ export default component$(() => {
       <nav class="nav-bar">
         <a href="/">Home</a>
       </nav>
-      <main>
+      <main class="container">
         <h1>Discord Profile</h1>
         <div>
           <p>
